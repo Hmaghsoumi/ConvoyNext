@@ -262,14 +262,23 @@ class Control(object):
         # Calculate derivative and integral of error if sufficient buffer length
         if len(self.error_buffer) >= 2:
             I_error = sum(self.error_buffer) * dt
+            I_error = np.clip(I_error, -self.args.I_max, self.args.I_max)
             if dt == 0:
                 D_error = 0
             else:
-                D_error = (self.error_buffer[-1] - self.error_buffer[-2]) / dt
+                raw_D_error = (self.error_buffer[-1] - self.error_buffer[-2]) / dt
+                if not hasattr(self, 'previous_D_error'):
+                    # Initialize previous_D_error on the first run
+                    self.previous_D_error = raw_D_error
+
+                # Smooth the derivative
+                D_error = self.args.alpha * raw_D_error + (1 - self.args.alpha) * self.previous_D_error
+                self.previous_D_error = D_error
             
         else:
-            D_error = 0
             I_error = 0
+            D_error = 0
+            self.previous_D_error = None  # Safe fallback for early iterations
 
         # Select acceleration control law based on controller type  
         if self.args.speed_con_type == 'P':
@@ -285,7 +294,6 @@ class Control(object):
         else:
             raise ValueError("Invalid controller type")
         print (v_ego, v_desired, accel)
-        # Clip acceleration to defined bounds
         accel = np.clip(accel, self.args.accel_min, self.args.accel_max)
 
         return accel
