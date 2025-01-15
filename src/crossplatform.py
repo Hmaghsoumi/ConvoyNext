@@ -326,9 +326,9 @@ class Control(object):
         cross_product = np.cross(vector_to_point, line_direction)
         
         if cross_product > 0:
-            distance = distance  # Point (x,y) is to the right of line
+            distance = -distance  # Point (x,y) is to the right of line
         elif cross_product < 0:
-            distance = -distance   # Point (x,y) is to the left of line
+            distance = distance   # Point (x,y) is to the left of line
         else:
             distance = 0          # Point (x,y) is exactly on the line
 
@@ -359,9 +359,9 @@ class Control(object):
         radius_curve = np.sqrt(x_nearest**2 + y_nearest**2)
         radius_point = np.sqrt(x**2 + y**2)
         if radius_curve < radius_point:
-            distance = distance  # Point (x,y) is to the right of the curve
+            distance = -distance  # Point (x,y) is to the right of the curve
         elif radius_curve > radius_point:
-            distance = -distance  # Point (x,y) is to the left of the curve
+            distance = distance  # Point (x,y) is to the left of the curve
         else:
             distance = 0  # Point (x,y) is exactly on the curve
     
