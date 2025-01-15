@@ -26,7 +26,7 @@ DUE_EAST = 90
 class ROSArgs:
     def __init__(self, car_number, wheelbase, follow_distance=None, speed_max=None, speed_min=None, accel_max=None, accel_min=None, steer_max=None, steer_min=None, velocity_weight=None,
                  broadcast_interval=None, listen_interval=None, drop_rate=None, track_name=None, center_lat=None, center_lon=None, center_orientation=None, heading_con_type=None, speed_con_type=None, 
-                 P_Kp=None, I_Ki=None, PI_Kp=None, PI_Ki=None, PD_Kp=None, PD_Kd=None, PID_Kp=None, PID_Ki=None, PID_Kd=None, k=None, ks=None, save_path=None, **kwargs):
+                 I_max=None, alpha=None, P_Kp=None, I_Ki=None, PI_Kp=None, PI_Ki=None, PD_Kp=None, PD_Kd=None, PID_Kp=None, PID_Ki=None, PID_Kd=None, k=None, ks=None, save_path=None, **kwargs):
 
         self.car_number = car_number
         self.wheelbase = wheelbase
@@ -51,7 +51,8 @@ class ROSArgs:
 
         self.heading_con_type = heading_con_type
         self.speed_con_type = speed_con_type
-        self.args.I_max = I_max
+        self.I_max = I_max
+        self.alpha = alpha
         self.P_Kp = P_Kp
         self.I_Ki = I_Ki
         self.PI_Kp = PI_Kp
