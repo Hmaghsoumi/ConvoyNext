@@ -238,7 +238,7 @@ class Control(object):
         lambda2 = math.radians(target_lon)
 
         # Equirectangular approximation to convert to local Cartesian coordinates
-        x = EARTH_RADIUS * (lambda2 - lambda1) * math.cos((phi1 + phi2) / 2)
+        x = EARTH_RADIUS * math.cos((phi1 + phi2) / 2) * (lambda2 - lambda1) 
         y = EARTH_RADIUS * (phi2 - phi1)
 
         # Adjust for the center orientation angle  (Center orientation is the angle of y axis of local cartesian) 
