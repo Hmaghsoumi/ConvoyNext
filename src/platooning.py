@@ -47,7 +47,7 @@ if __name__ == '__main__':
         args.track_name = track['name']
         args.center_lat = track['center']['lat']
         args.center_lon = track['center']['lon']
-        args.center_orientation = 0.0
+        args.center_orientation = 90.0
 
     rosargs = ROSArgs(
         ros_version=args.ros_version,   
