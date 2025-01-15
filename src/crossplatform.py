@@ -147,7 +147,7 @@ class Control(object):
             longitude=self.satellite.longitude,
             elevation=self.satellite.altitude,
             speed=np.abs(self.telem.twist.twist.linear.x),
-            heading=-self.heading.data,
+            heading=self.heading.data,
             acceleration=np.sqrt(self.imu.linear_acceleration.x**2 + self.imu.linear_acceleration.y**2),
             yaw_rate=self.imu.angular_velocity.z,
             event_flags={
