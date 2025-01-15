@@ -406,7 +406,9 @@ class Control(object):
 
                     # Use the car closest to the ego vehicle as the initial guess for the line (straight fitting) to ensure convergence
                     if key == self.args.car_number - 1:
-                        initial_guess = [x1, y1, x2 - x1, y2 - y1]
+                        initial_dx = x2 - x1
+                        initial_dy = y2 - y1
+                        initial_guess = [x1, y1, initial_dx, initial_dy]
         
                 if initial_guess is None:
                     print("Error: No valid initial guess for straight line fitting.")
@@ -423,6 +425,8 @@ class Control(object):
                 # compute a line of best fit using the last 2 positions of all other cars
                 result = least_squares(distances_to_st_line, initial_guess, args=(points,))
                 x0_opt, y0_opt, dx_opt, dy_opt = result.x
+                if dx_opt * initial_dx + dy_opt * initial_dy < 0:
+                    dx_opt, dy_opt = -dx_opt, -dy_opt
 
                 # Calculate crosstrack error value
                 cte = self.distance_to_St_line(x0_opt, y0_opt, dx_opt, dy_opt, x1_ego, y1_ego)
