@@ -297,7 +297,7 @@ class Control(object):
             raise ValueError("Invalid controller type")
         
         accel = np.clip(accel, self.args.accel_min, self.args.accel_max)
-        print (v_ego, v_desired, accel)
+        print(f"v_ego: {v_ego}, v_desired: {v_desired}, accel: {accel}")
 
         return accel
 
