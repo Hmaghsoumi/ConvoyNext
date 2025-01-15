@@ -20,7 +20,7 @@ MISSIONCOMPLETE = 4
 
 # set up constants
 EARTH_RADIUS = 6371e3
-DUE_NORTH = 0
+DUE_EAST = 90
 
 
 class ROSArgs:
@@ -242,7 +242,7 @@ class Control(object):
         y = EARTH_RADIUS * (phi2 - phi1)
 
         # Adjust for the center orientation angle  (Center orientation is the angle of y axis of local cartesian) 
-        theta_rad = math.radians(DUE_NORTH - self.args.center_orientation)    
+        theta_rad = math.radians(self.args.center_orientation - DUE_EAST)    
         qx = math.cos(theta_rad) * x - math.sin(theta_rad) * y
         qy = math.sin(theta_rad) * x + math.cos(theta_rad) * y
 
