@@ -51,6 +51,7 @@ class ROSArgs:
 
         self.heading_con_type = heading_con_type
         self.speed_con_type = speed_con_type
+        self.args.I_max = I_max
         self.P_Kp = P_Kp
         self.I_Ki = I_Ki
         self.PI_Kp = PI_Kp
