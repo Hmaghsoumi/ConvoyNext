@@ -295,8 +295,9 @@ class Control(object):
             accel = (self.args.PID_Kp * error) + (self.args.PID_Ki * I_error) + (self.args.PID_Kd * D_error)
         else:
             raise ValueError("Invalid controller type")
-        print (v_ego, v_desired, accel)
+        
         accel = np.clip(accel, self.args.accel_min, self.args.accel_max)
+        print (v_ego, v_desired, accel)
 
         return accel
 
