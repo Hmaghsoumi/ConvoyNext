@@ -381,13 +381,6 @@ class Control(object):
         point_vector = np.array([x - x_nearest, y - y_nearest])
         cross_product = np.cross(tangent_vector, point_vector)
         sign = np.sign(cross_product)
-
-        # Determine the sign of the distance based on the relative position of (x, y) to the curve (Positive distance: point is to the "left" of the curve, negative distance: point is to the "right.")
-        curve_derivative = poly_func.deriv()
-        slope = curve_derivative(x_nearest)
-        normal_vector = np.array([-slope, 1])
-        point_vector = np.array([x - x_nearest, y - y_nearest])
-        sign = np.sign(np.dot(normal_vector, point_vector))
     
         return sign * distance
 
