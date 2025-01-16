@@ -306,6 +306,7 @@ class Control(object):
     def distance_to_St_line(self, x0, y0, dx, dy, x, y):
         """           Calculates the distance between a point (x,y) and            """
         """    a line defined by a point (x0,y0) and a direction vector (dx,dy).   """
+        """  Positive distance indicates the point is to the "left" of the line, and negative distance indicates the point is to the "right." """
         
         # Vector from (x0, y0) to (x, y)
         vector_to_point = np.array([x - x0, y - y0])
@@ -323,16 +324,11 @@ class Control(object):
         distance = np.linalg.norm(closest_point - np.array([x, y]))
 
         # Determine the sign of the distance based on the relative position of (x, y) to the line
-        cross_product = np.cross(vector_to_point, line_direction)
-        
-        if cross_product > 0:
-            distance = -distance  # Point (x,y) is to the right of line
-        elif cross_product < 0:
-            distance = distance   # Point (x,y) is to the left of line
-        else:
-            distance = 0          # Point (x,y) is exactly on the line
+        cross_product = np.cross(line_direction, vector_to_point)
+        sign = np.sign(cross_product)
 
-        return distance
+        # Return the signed distance
+        return sign * distance
 
 
 
