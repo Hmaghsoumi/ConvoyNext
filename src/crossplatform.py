@@ -373,7 +373,7 @@ class Control(object):
         """     Calculates the steering angle using various heading controllers    """
        
         # Select heading control law based on controller type 
-        if self.args.heading_con_type in ['Stanley_Straight', 'Stanley_Curve']:
+        if self.args.heading_con_type in ['Stanley_Straight', 'Stanley_Curve_1']:
         
             # 1. Calculate heading error
             yaw_diff = yaw_desired - yaw_ego
@@ -431,7 +431,7 @@ class Control(object):
                 # Calculate crosstrack error value
                 cte = self.distance_to_St_line(x0_opt, y0_opt, dx_opt, dy_opt, x1_ego, y1_ego)
 
-            elif self.args.heading_con_type == 'Stanley_Curve':
+            elif self.args.heading_con_type == 'Stanley_Curve_1':
 
                 # Get the local coordinates of the last two locations of all other cars
                 for key, value in self.car_positions.items():
