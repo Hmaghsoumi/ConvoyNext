@@ -473,15 +473,10 @@ class Control(object):
             steer_expect = yaw_diff + yaw_diff_crosstrack
             steer_expect = np.clip(steer_expect, self.args.steer_min, self.args.steer_max)
 
-            # steering angle scaling in (-1.0, 1.0)
-            # steer_expect = steer_expect/steer_scale
-            # steer_expect = max(min(steer_expect, 1.0), -1.0)
-
 
         elif self.args.heading_con_type in ['PurePursuit_Straight', 'PurePursuit_Curve']:
 
             steer_expect = 0.0
-
 
 
         # Presents steering angle in degree
