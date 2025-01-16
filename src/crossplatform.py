@@ -462,55 +462,6 @@ class Control(object):
                 # Calculate crosstrack error value
                 cte = self.distance_to_curve_line(poly_coeffs, x1_ego, y1_ego)  
 
-        #    elif self.args.heading_con_type == 'Stanley_Curve_2':
-
-        #        # Get the local coordinates of the last two locations of all other cars
-        #        for key, value in self.car_positions.items():
-        #            if len(value) < 2:
-        #               print(f"Error: Car {key} does not have enough position data.")
-        #               return None
-
-        #            m1, m2 = value[-2:]
-        #            x1, y1 = self.coords_to_local(m1.latitude, m1.longitude)
-        #            x2, y2 = self.coords_to_local(m2.latitude, m2.longitude)
-        #            points.append((x1, y1))
-        #            points.append((x2, y2))
-
-             ##       # Use the car closest to the ego vehicle as the initial guess for the curve fitting
-             ##       if key == self.args.car_number - 1:
-             ##           initial_guess = [0, (y2-y1)/(x2-x1), y1-(x1*(y2-y1))/(x2-x1)]
-        
-             ##   if initial_guess is None:
-             ##       print("Error: No valid initial guess for curve fitting.")
-             ##       return None
-
-             ##   # Function to create a list of distances to the curve
-             ##   def distances_to_curve(params, points):
-             ##       distances = []
-             ##       for (x, y) in points:
-             ##           distance = self.distance_to_curve_line(params, x, y)
-             ##           distances.append(distance)
-             ##       return distances
-
-             ##   # Compute a quadratic curve of best fit using the last 2 positions of all other cars
-             ##   result = least_squares(distances_to_curve, initial_guess, args=(points,))
-             ##   a_opt, b_opt, c_opt = result.x
-
-             ##   # Calculate crosstrack error value
-             ##   cte = self.distance_to_curve_line([a_opt, b_opt, c_opt], x1_ego, y1_ego)
-                
-                if not points:
-                    print("Error: No valid points for curve fitting.")
-                    return None
-
-                # Extract x and y coordinates from points
-                x_coords, y_coords = zip(*points)
-
-                # Fit a polynomial curve (e.g., quadratic curve) to the points
-                poly_coeffs = np.polyfit(x_coords, y_coords, 2)  # Change the degree if needed
-
-                # Calculate crosstrack error value
-                cte = self.distance_to_curve_line(poly_coeffs, x1_ego, y1_ego) 
 
             # Calculate the removal angle of crosstrack error
             yaw_diff_crosstrack = np.arctan((self.args.k * cte) / (self.args.ks + v_ego))
