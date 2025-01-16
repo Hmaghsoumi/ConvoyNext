@@ -336,7 +336,7 @@ class Control(object):
 
 
 
-    def distance_to_curve_line(self, poly_coeffs, x, y):
+    def distance_to_curve_line(self, poly_coeffs, x, y, dx, dy):
         """  Calculates the signed distance between a point (x,y) and a polynominal curve.  """
         """  Positive distance indicates the point is to the "left" of the curve (based on normal vector), and negative distance indicates the point is to the "right." """
         
@@ -362,7 +362,26 @@ class Control(object):
 
         # Calculate the Euclidean distance between (x, y) and the nearest point on the curve
         distance = np.sqrt((x - x_nearest)**2 + (y - y_nearest)**2)
-      
+
+        # Calculate the tangent direction of the curve
+        curve_derivative = poly_func.deriv()
+        slope = curve_derivative(x_nearest)
+        tangent_vector = np.array([1, slope])
+
+        # Normalize the tangent vector and vehicle direction
+        tangent_vector /= np.linalg.norm(tangent_vector)
+        vehicle_direction = np.array([dx, dy])
+        vehicle_direction /= np.linalg.norm(vehicle_direction)
+
+        # Align curve direction with vehicle direction
+        if np.dot(tangent_vector, vehicle_direction) < 0:
+            tangent_vector = -tangent_vector
+
+        # Determine the sign using the cross product
+        point_vector = np.array([x - x_nearest, y - y_nearest])
+        cross_product = np.cross(tangent_vector, point_vector)
+        sign = np.sign(cross_product)
+
         # Determine the sign of the distance based on the relative position of (x, y) to the curve (Positive distance: point is to the "left" of the curve, negative distance: point is to the "right.")
         curve_derivative = poly_func.deriv()
         slope = curve_derivative(x_nearest)
@@ -412,6 +431,9 @@ class Control(object):
                     if key == self.args.car_number - 1:
                         initial_dx = x2 - x1
                         initial_dy = y2 - y1
+                        norm = np.sqrt(initial_dx**2 + initial_dy**2)
+                        initial_dx /= norm
+                        initial_dy /= norm
                         initial_guess = [x1, y1, initial_dx, initial_dy]
         
                 if initial_guess is None:
@@ -448,6 +470,11 @@ class Control(object):
                     x2, y2 = self.coords_to_local(m2.latitude, m2.longitude)
                     points.append((x1, y1))
                     points.append((x2, y2))
+
+                    # Calculate direction vector of the front car
+                    if key == self.args.car_number - 1:
+                        dx = x2 - x1
+                        dy = y2 - y1
               
                 if not points:
                     print("Error: No valid points for curve fitting.")
@@ -460,8 +487,8 @@ class Control(object):
                 poly_coeffs = np.polyfit(x_coords, y_coords, 2)  # Change the degree if needed
 
                 # Calculate crosstrack error value
-                cte = self.distance_to_curve_line(poly_coeffs, x1_ego, y1_ego)  
-
+                cte = self.distance_to_curve_line(poly_coeffs, x1_ego, y1_ego, dx, dy)  
+                
             # Calculate the removal angle of crosstrack error
             yaw_diff_crosstrack = np.arctan((self.args.k * cte) / (self.args.ks + v_ego))
             yaw_diff_crosstrack = np.rad2deg(yaw_diff_crosstrack)
