@@ -462,7 +462,6 @@ class Control(object):
                 # Calculate crosstrack error value
                 cte = self.distance_to_curve_line(poly_coeffs, x1_ego, y1_ego)  
 
-
             # Calculate the removal angle of crosstrack error
             yaw_diff_crosstrack = np.arctan((self.args.k * cte) / (self.args.ks + v_ego))
             yaw_diff_crosstrack = np.rad2deg(yaw_diff_crosstrack)
