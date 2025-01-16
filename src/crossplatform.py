@@ -490,12 +490,6 @@ class Control(object):
 
             # 3. Control law
             steer_expect = yaw_diff + yaw_diff_crosstrack
-    
-            if steer_expect > 180.0:
-                steer_expect -= 360.0
-            elif steer_expect < -180.0:
-                steer_expect += 360.0
-
             steer_expect = np.clip(steer_expect, self.args.steer_min, self.args.steer_max)
 
             # steering angle scaling in (-1.0, 1.0)
