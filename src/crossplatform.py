@@ -367,10 +367,12 @@ class Control(object):
         curve_derivative = poly_func.deriv()
         slope = curve_derivative(x_nearest)
         tangent_vector = np.array([1, slope])
-
-        # Normalize the tangent vector and vehicle direction
         tangent_vector /= np.linalg.norm(tangent_vector)
+        
+        # Normalize the vehicle direction and align with tangent vector
         vehicle_direction = np.array([dx, dy])
+        if np.linalg.norm(vehicle_direction) == 0:
+            raise ValueError("Invalid vehicle direction: dx and dy cannot both be zero.")
         vehicle_direction /= np.linalg.norm(vehicle_direction)
 
         # Align curve direction with vehicle direction
