@@ -466,12 +466,12 @@ class Control(object):
             # Calculate the removal angle of crosstrack error
             yaw_diff_crosstrack = np.arctan((self.args.k * cte) / (self.args.ks + v_ego))
             yaw_diff_crosstrack = np.rad2deg(yaw_diff_crosstrack)
-            #print("heading error: {yaw_diff} crosstrack error: {yaw_diff_crosstrack} heading: {egohead} ego pos: ({x1_ego}, {y1_ego})".format(
-            #          yaw_diff=yaw_diff, yaw_diff_crosstrack=yaw_diff_crosstrack, egohead=yaw_ego, x1_ego=x1_ego, y1_ego=y1_ego))
+        
 
             # 3. Control law
             steer_expect = yaw_diff + yaw_diff_crosstrack
             steer_expect = np.clip(steer_expect, self.args.steer_min, self.args.steer_max)
+            print(f"yaw_diff: {yaw_diff}, yaw_diff_crosstrack: {yaw_diff_crosstrack}, steer_expect: {steer_expect}")
 
 
         elif self.args.heading_con_type in ['PurePursuit_Straight', 'PurePursuit_Curve']:
