@@ -36,7 +36,7 @@ parser.add_argument('--PD_Kd', type=float, default=0.01)
 parser.add_argument('--PID_Kp', type=float, default=1.0)
 parser.add_argument('--PID_Ki', type=float, default=0.3)
 parser.add_argument('--PID_Kd', type=float, default=0.01)
-parser.add_argument('--k', type=float, default=0.1)
+parser.add_argument('--k', type=float, default=0.15)
 parser.add_argument('--ks', type=float, default=1.0)
 parser.add_argument('--save_path', type=str, default='data')
 
