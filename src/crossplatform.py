@@ -337,7 +337,8 @@ class Control(object):
 
 
     def distance_to_curve_line(self, poly_coeffs, x, y):
-        """  Calculates the distance between a point (x,y) and a polynominal curve.  """
+        """  Calculates the signed distance between a point (x,y) and a polynominal curve.  """
+        """  Positive distance indicates the point is to the "left" of the curve (based on normal vector), and negative distance indicates the point is to the "right." """
         
         # Polynomial function
         poly_func = np.poly1d(poly_coeffs)
@@ -347,33 +348,36 @@ class Control(object):
             y_curve = poly_func(x_curve)
             return np.sqrt((x - x_curve)**2 + (y - y_curve)**2)
 
+        # Initial sampling to estimate the nearest value
+        x_grid = np.linspace(x - 2, x + 2, 40)
+        distances = [distance_function(x0) for x0 in x_grid]
+        best_x = x_grid[np.argmin(distances)]
+    
         # Find the x_curve that minimizes the distance function
-        closest_point = minimize(distance_function, x)
+        closest_point = minimize(distance_function, best_x, bounds=[(x - 10, x + 10)])
+        if not closest_point.success:
+            raise ValueError("Optimization failed to find the closest point.") 
         x_nearest = closest_point.x[0]
         y_nearest = poly_func(x_nearest)
 
         # Calculate the Euclidean distance between (x, y) and the nearest point on the curve
         distance = np.sqrt((x - x_nearest)**2 + (y - y_nearest)**2)
       
-        # Determine the sign of the distance based on the relative position of (x, y) to the curve
-        radius_curve = np.sqrt(x_nearest**2 + y_nearest**2)
-        radius_point = np.sqrt(x**2 + y**2)
-        if radius_curve < radius_point:
-            distance = -distance  # Point (x,y) is to the right of the curve
-        elif radius_curve > radius_point:
-            distance = distance  # Point (x,y) is to the left of the curve
-        else:
-            distance = 0  # Point (x,y) is exactly on the curve
+        # Determine the sign of the distance based on the relative position of (x, y) to the curve (Positive distance: point is to the "left" of the curve, negative distance: point is to the "right.")
+        curve_derivative = poly_func.deriv()
+        slope = curve_derivative(x_nearest)
+        normal_vector = np.array([-slope, 1])
+        point_vector = np.array([x - x_nearest, y - y_nearest])
+        sign = np.sign(np.dot(normal_vector, point_vector))
     
-        return distance
-
+        return sign * distance
 
     
     def heading_controller(self, v_ego, yaw_ego, yaw_desired):
         """     Calculates the steering angle using various heading controllers    """
        
         # Select heading control law based on controller type 
-        if self.args.heading_con_type in ['Stanley_Straight', 'Stanley_Curve_1']:
+        if self.args.heading_con_type in ['Stanley_Straight', 'Stanley_Curve']:
         
             # 1. Calculate heading error
             yaw_diff = yaw_desired - yaw_ego
@@ -431,7 +435,7 @@ class Control(object):
                 # Calculate crosstrack error value
                 cte = self.distance_to_St_line(x0_opt, y0_opt, dx_opt, dy_opt, x1_ego, y1_ego)
 
-            elif self.args.heading_con_type == 'Stanley_Curve_1':
+            elif self.args.heading_con_type == 'Stanley_Curve':
 
                 # Get the local coordinates of the last two locations of all other cars
                 for key, value in self.car_positions.items():
@@ -444,6 +448,33 @@ class Control(object):
                     x2, y2 = self.coords_to_local(m2.latitude, m2.longitude)
                     points.append((x1, y1))
                     points.append((x2, y2))
+              
+                if not points:
+                    print("Error: No valid points for curve fitting.")
+                    return None
+
+                # Extract x and y coordinates from points
+                x_coords, y_coords = zip(*points)
+
+                # Fit a polynomial curve (e.g., quadratic curve) to the points
+                poly_coeffs = np.polyfit(x_coords, y_coords, 2)  # Change the degree if needed
+
+                # Calculate crosstrack error value
+                cte = self.distance_to_curve_line(poly_coeffs, x1_ego, y1_ego)  
+
+        #    elif self.args.heading_con_type == 'Stanley_Curve_2':
+
+        #        # Get the local coordinates of the last two locations of all other cars
+        #        for key, value in self.car_positions.items():
+        #            if len(value) < 2:
+        #               print(f"Error: Car {key} does not have enough position data.")
+        #               return None
+
+        #            m1, m2 = value[-2:]
+        #            x1, y1 = self.coords_to_local(m1.latitude, m1.longitude)
+        #            x2, y2 = self.coords_to_local(m2.latitude, m2.longitude)
+        #            points.append((x1, y1))
+        #            points.append((x2, y2))
 
              ##       # Use the car closest to the ego vehicle as the initial guess for the curve fitting
              ##       if key == self.args.car_number - 1:
@@ -479,8 +510,7 @@ class Control(object):
                 poly_coeffs = np.polyfit(x_coords, y_coords, 2)  # Change the degree if needed
 
                 # Calculate crosstrack error value
-                cte = self.distance_to_curve_line(poly_coeffs, x1_ego, y1_ego)  
-
+                cte = self.distance_to_curve_line(poly_coeffs, x1_ego, y1_ego) 
 
             # Calculate the removal angle of crosstrack error
             yaw_diff_crosstrack = np.arctan((self.args.k * cte) / (self.args.ks + v_ego))
