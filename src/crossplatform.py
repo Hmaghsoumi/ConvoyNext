@@ -32,8 +32,8 @@ class ROSArgs:
         self.wheelbase = wheelbase
 
         self.follow_distance = follow_distance
-        self.speed_max = speed_max    # +5 m/s
-        self.speed_min = speed_min    # 0 m/s
+        self.speed_max = speed_max    # m/s
+        self.speed_min = speed_min    # m/s
         self.accel_max = accel_max    # +1.0
         self.accel_min = accel_min    # -1.0
         self.steer_max = steer_max    #unit: degree
@@ -63,8 +63,8 @@ class ROSArgs:
         self.PID_Ki = PID_Ki
         self.PID_Kd = PID_Kd
 
-        self.k = k    # default is 0.3
-        self.ks = ks  # default is 20.0
+        self.k = k    
+        self.ks = ks  
 
         self.save_path = save_path
        
