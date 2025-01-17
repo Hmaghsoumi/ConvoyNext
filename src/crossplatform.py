@@ -549,38 +549,40 @@ class Control(object):
         """              Cost function to minimize to find the optimal speed for cooperative driving.            """ 
 
         # Ego vehicle coordinate transform
-        x, y = self.coords_to_local(self.state.latitude, self.state.longitude)
+        x_ego, y_ego = self.coords_to_local(self.state.latitude, self.state.longitude)
+        yaw_ego = np.radians(self.state.heading)
 
         # Cost Calculation
         total_cost = 0
         for _, value in self.car_positions.items():
             value = value[-1]
             x_target, y_target = self.coords_to_local(value.latitude, value.longitude)
-            position = self.args.car_number - value.event_flags['car']
+            yaw_target = np.radians(value.heading)
             v_target = value.speed
-            
+                        
             # Calculation goal follow distance
+            position = self.args.car_number - value.event_flags['car']
             goal_follow_distance = self.args.follow_distance * position
 
             # Simulation future positions
-            x_target_future = x_target + (v_target * np.sin(np.radians(value.heading)) * self.args.broadcast_interval)
-            y_target_future = y_target + (v_target * np.cos(np.radians(value.heading)) * self.args.broadcast_interval)
-            x_ego_future = x + (v_ego * np.sin(np.radians(self.state.heading)) * self.args.broadcast_interval)
+            x_target_future = x_target + (v_target * np.sin(yaw_target) * self.args.broadcast_interval)
+            y_target_future = y_target + (v_target * np.cos(yaw_target) * self.args.broadcast_interval)
+            x_ego_future = x + (v_ego * np.sin() * self.args.broadcast_interval)
             y_ego_future = y + (v_ego * np.cos(np.radians(self.state.heading)) * self.args.broadcast_interval)
 
             # Calculation of goal position
-            x_ego_goal = x_target_future + (goal_follow_distance * np.sin(np.radians(value.heading)))
+            x_ego_goal = x_target_future - (goal_follow_distance * np.sin(np.radians(value.heading)))
             y_ego_goal = y_target_future - (goal_follow_distance * np.cos(np.radians(value.heading)))
 
-            # print("goal follow: {gfd}, head target: {th}, vtarget: {vt}, selected {v} {h}".format(gfd=goal_follow_distance, th=value.heading, vt=value.speed, v=v, h=np.rad2deg(yaw_ego)))
+            print("v_target:", v_target, "v_ego:", v_ego, "h_target:", value.heading, "yaw_ego:", self.state.heading)
             
             # Cost computation 
             distance_cost = np.sqrt((x_ego_goal - x_ego_future)**2 + (y_ego_goal - y_ego_future)**2)
             total_cost += distance_cost
 
         # Penalize low velocities
-        velocity_penalty = 1 / (v_ego + 1e-5) * self.args.velocity_weight * 2  # Add a small number to avoid division by zero
-        total_cost += velocity_penalty  # Adjust the weight as necessary
+        # velocity_penalty = 1 / (v_ego + 1e-5) * self.args.velocity_weight * 2  # Add a small number to avoid division by zero
+        # total_cost += velocity_penalty  # Adjust the weight as necessary
 
         return total_cost
 
