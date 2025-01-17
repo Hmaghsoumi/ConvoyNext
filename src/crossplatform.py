@@ -625,22 +625,23 @@ class Control(object):
         """  Calculates the target speed and heading for the ego vehicle based on the positions of the other cars in the network.  """ 
         """                 (Uses the implemented minimization objective, which by default is for platooning)                      """
 
-        # bounds = [(0.5, 4.0), (-180, 180)]
-        # v, yaw = self.state.speed, self.state.heading
-        # response = minimize(lambda params: self.minimization_objective(params), [v,yaw], method='SLSQP', bounds=bounds)
-        # #print("calculated target v {v} and yaw {yaw}".format(v=v, yaw=yaw))
+        # Optimization for velocity and yaw together
+        bounds = [(0.0, 4.0), (0, 360)]
+        speed_initial, yaw_initial= self.car_positions[0][-1].speed, self.car_positions[0][-1].heading
+        response = minimize(lambda params: self.minimization_objective(params), [speed_initial, yaw_initial], method='SLSQP', bounds=bounds)
+        v_ego_optimal , yaw_ego_optimal = response.x[0], response.x[1]
 
         # stage 1: Optimization for velocity
-        velocity_bounds = [(0.0, 4.0)]
-        speed_initial = self.car_positions[0][-1].speed
-        speed_result = minimize(lambda params: self.minimization_objective_velocity(params[0]), [speed_initial], method='SLSQP', bounds=velocity_bounds)
-        v_ego_optimal = speed_result.x[0] 
+        #velocity_bounds = [(0.0, 4.0)]
+        #speed_initial = self.car_positions[0][-1].speed
+        #speed_result = minimize(lambda params: self.minimization_objective_velocity(params[0]), [speed_initial], method='SLSQP', bounds=velocity_bounds)
+        #v_ego_optimal = speed_result.x[0] 
 
         # stage 2: Optimization for yaw
-        yaw_bounds = [(-180, 180)]
-        yaw_initial = self.car_positions[0][-1].heading
-        yaw_result = minimize(lambda params: self.minimization_objective_yaw(params[0]), [yaw_initial], method='SLSQP', bounds=yaw_bounds)
-        yaw_ego_optimal = yaw_result.x[0]
+        #yaw_bounds = [(-180, 180)]
+        #yaw_initial = self.car_positions[0][-1].heading
+        #yaw_result = minimize(lambda params: self.minimization_objective_yaw(params[0]), [yaw_initial], method='SLSQP', bounds=yaw_bounds)
+        #yaw_ego_optimal = yaw_result.x[0]
         
         return v_ego_optimal, yaw_ego_optimal
 
