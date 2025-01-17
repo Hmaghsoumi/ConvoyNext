@@ -146,7 +146,7 @@ class Control(object):
             latitude=self.satellite.latitude,
             longitude=self.satellite.longitude,
             elevation=self.satellite.altitude,
-            speed=np.abs(self.telem.twist.twist.linear.x),
+            speed=np.abs(self.telem.twist.twist.linear.x**2 + self.telem.twist.twist.linear.y**2),
             heading=self.heading.data,
             acceleration=np.sqrt(self.imu.linear_acceleration.x**2 + self.imu.linear_acceleration.y**2),
             yaw_rate=self.imu.angular_velocity.z,
