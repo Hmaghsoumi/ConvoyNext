@@ -574,7 +574,7 @@ class Control(object):
             x_ego_goal = x_target_future - (goal_follow_distance * np.sin(yaw_target))
             y_ego_goal = y_target_future - (goal_follow_distance * np.cos(yaw_target))
 
-            print("v_target:", v_target, "v_ego:", v_ego, "h_target:", value.heading, "yaw_ego:", self.state.heading)
+            print("v_target:", v_target, "v_ego:", v_ego, "yaw_target:", value.heading, "yaw_ego:", self.state.heading)
             
             # Cost computation 
             distance_cost = np.sqrt((x_ego_goal - x_ego_future)**2 + (y_ego_goal - y_ego_future)**2)
