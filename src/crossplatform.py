@@ -567,8 +567,8 @@ class Control(object):
             # Simulation future positions
             x_target_future = x_target + (v_target * np.sin(yaw_target) * self.args.broadcast_interval)
             y_target_future = y_target + (v_target * np.cos(yaw_target) * self.args.broadcast_interval)
-            x_ego_future = x + (v_ego * np.sin() * self.args.broadcast_interval)
-            y_ego_future = y + (v_ego * np.cos(np.radians(self.state.heading)) * self.args.broadcast_interval)
+            x_ego_future = x_ego + (v_ego * np.sin() * self.args.broadcast_interval)
+            y_ego_future = y_ego + (v_ego * np.cos(np.radians(self.state.heading)) * self.args.broadcast_interval)
 
             # Calculation of goal position
             x_ego_goal = x_target_future - (goal_follow_distance * np.sin(np.radians(value.heading)))
