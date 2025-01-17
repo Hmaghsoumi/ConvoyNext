@@ -548,7 +548,7 @@ class Control(object):
     def minimization_objective_velocity(self, v_ego):
         """              Cost function to minimize to find the optimal speed for cooperative driving.            """ 
 
-        # Ego vehicle coordinate transform
+        # Ego vehicle data
         x_ego, y_ego = self.coords_to_local(self.state.latitude, self.state.longitude)
         yaw_ego = np.radians(self.state.heading)
 
@@ -586,44 +586,46 @@ class Control(object):
 
         return total_cost
 
+    
     def minimization_objective_yaw(self, yaw_ego):
-        """                     Cost function to minimize to implement cooperative driving policy.                     """ 
-        """ By default implements platooning. Override this function in your subclass to implement a different policy. """
-        # Initialization
-        yaw_ego = np.radians(yaw_ego)
+        """              Cost function to minimize to find the optimal heading for cooperative driving.            """   
 
-        # Ego vehicle coordinate transform
-        x, y = self.coords_to_local(self.state.latitude, self.state.longitude)
+        # Ego vehicle data
+        x_ego, y_ego = self.coords_to_local(self.state.latitude, self.state.longitude)
+        yaw_ego = np.radians(yaw_ego)
+        v_ego = self.state.speed
         
         # Cost Calculation
         total_cost = 0
         for _, value in self.car_positions.items():
             value = value[-1]
             x_target, y_target = self.coords_to_local(value.latitude, value.longitude)
-            position = self.args.car_number - value.event_flags['car']
-            v_target, yaw_target = value.speed, np.radians(value.heading)
+            yaw_target = np.radians(value.heading)
+            v_target = value.speed          
             
             # Calculation goal follow distance
+            position = self.args.car_number - value.event_flags['car']
             goal_follow_distance = self.args.follow_distance * position
 
             # Simulation future positions
-            x_target_future = x_target - (v_target * np.sin(yaw_target) * self.args.broadcast_interval)
+            x_target_future = x_target + (v_target * np.sin(yaw_target) * self.args.broadcast_interval)
             y_target_future = y_target + (v_target * np.cos(yaw_target) * self.args.broadcast_interval)
-            x_ego_future = x - (self.state.speed * np.sin(yaw_ego) * self.args.broadcast_interval)
-            y_ego_future = y + (self.state.speed * np.cos(yaw_ego) * self.args.broadcast_interval)
+            x_ego_future = x_ego + (v_ego * np.sin(yaw_ego) * self.args.broadcast_interval)
+            y_ego_future = y_ego + (v_ego * np.cos(yaw_ego) * self.args.broadcast_interval)
 
             # Calculation of goal position
-            x_ego_goal = x_target_future + (goal_follow_distance * np.sin(yaw_target))
+            x_ego_goal = x_target_future - (goal_follow_distance * np.sin(yaw_target))
             y_ego_goal = y_target_future - (goal_follow_distance * np.cos(yaw_target))
 
-            # print("goal follow: {gfd}, head target: {th}, vtarget: {vt}, selected {v} {h}".format(gfd=goal_follow_distance, th=value.heading, vt=value.speed, v=v, h=np.rad2deg(yaw_ego)))
-            
+            print("v_target:", v_target, "v_ego:", v_ego, "yaw_target:", value.heading, "yaw_ego:", self.state.heading)
+           
             # Cost computation 
             distance_cost = np.sqrt((x_ego_goal - x_ego_future)**2 + (y_ego_goal - y_ego_future)**2)
             total_cost += distance_cost
 
         return total_cost
 
+    
     def _get_goal_motion(self):
         """  Calculates the target speed and heading for the ego vehicle based on the positions of the other cars in the network.  """ 
         """                 (Uses the implemented minimization objective, which by default is for platooning)                      """
