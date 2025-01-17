@@ -632,13 +632,13 @@ class Control(object):
 
         # stage 1: Optimization for velocity
         velocity_bounds = [(0.0, 4.0)]
-        speed_initial = self.state.speed
+        speed_initial = self.car_positions[0][-1].speed
         speed_result = minimize(lambda params: self.minimization_objective_velocity(params[0]), [speed_initial], method='SLSQP', bounds=velocity_bounds)
         v_ego_optimal = speed_result.x[0] 
 
         # stage 2: Optimization for yaw
         yaw_bounds = [(-180, 180)]
-        yaw_initial = self.state.heading
+        yaw_initial = self.car_positions[0][-1].heading
         yaw_result = minimize(lambda params: self.minimization_objective_yaw(params[0]), [yaw_initial], method='SLSQP', bounds=yaw_bounds)
         yaw_ego_optimal = yaw_result.x[0]
         
