@@ -631,7 +631,7 @@ class Control(object):
         # #print("calculated target v {v} and yaw {yaw}".format(v=v, yaw=yaw))
 
         # stage 1: Optimization for velocity
-        velocity_bounds = [(0.1, 4.0)]
+        velocity_bounds = [(0.0, 4.0)]
         speed_initial = self.state.speed
         speed_result = minimize(lambda params: self.minimization_objective_velocity(params[0]), [speed_initial], method='SLSQP', bounds=velocity_bounds)
         v_ego_optimal = speed_result.x[0] 
