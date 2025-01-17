@@ -627,9 +627,19 @@ class Control(object):
 
         # Optimization for velocity and yaw together
         bounds = [(0.0, 4.0), (0, 360)]
-        speed_initial, yaw_initial= self.car_positions[0][-1].speed, self.car_positions[0][-1].heading
-        response = minimize(lambda params: self.minimization_objective(params), [speed_initial, yaw_initial], method='SLSQP', bounds=bounds)
-        v_ego_optimal , yaw_ego_optimal = response.x[0], response.x[1]
+        speed_initial = self.car_positions[0][-1].speed
+        yaw_initial = self.car_positions[0][-1].heading
+        
+        response = minimize(
+        lambda params: self.minimization_objective(params),
+        [speed_initial, yaw_initial],
+        method='SLSQP',
+        bounds=bounds
+        )
+        if not response.success:
+            raise ValueError("Optimization failed: " + response.message)
+            
+        v_ego_optimal, yaw_ego_optimal = response.x
 
         # stage 1: Optimization for velocity
         #velocity_bounds = [(0.0, 4.0)]
