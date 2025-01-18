@@ -663,6 +663,11 @@ class Control(object):
         # Heading Calculation
         new_steering = self.heading_controller(v_ego, yaw_ego, yaw_desired)
         new_steering = np.radians(new_steering)
+
+        # Yaw rate (angular velocity) and Update the heading (cumulative)
+        yaw_rate = (new_velocity / self.args.wheelbase) * np.tan(new_steering)
+        new_steering = yaw_rate * dt
+
         
         # Calculates the forward velocity and turning velocity
         velocity_x = new_velocity * np.sin(new_steering)
