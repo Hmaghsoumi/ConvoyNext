@@ -660,9 +660,8 @@ class Control(object):
         new_velocity = np.clip(new_velocity, self.args.speed_min, self.args.speed_max)
         
 
-        #new_velocity = min(new_velocity, self.args.speed_max)       # Heading Calculation
+        # Heading Calculation
         new_steering = self.heading_controller(v_ego, yaw_ego, yaw_desired)
-        print ("new_steering:", new_steering)
         new_steering = np.radians(new_steering)
         
         # Calculates the forward/backward velocity and yaw rate
