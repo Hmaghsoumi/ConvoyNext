@@ -665,7 +665,7 @@ class Control(object):
         new_steering = np.radians(new_steering)
         
         # Calculates the forward velocity and turning velocity
-        velocity_x = -new_velocity * np.sin(new_steering)
+        velocity_x = new_velocity * np.sin(new_steering)
         velocity_y = new_velocity * np.cos(new_steering)
 
         # Calculates the forward/backward velocity and yaw rate
