@@ -108,15 +108,13 @@ class ROS2Control(Control, Node):
 #					return
 				
 				v_desired, yaw_desired = targets
-                                #print("v_desired", v_desired)
-				print("v_desired", v_desired, "yaw_desired", yaw_desired)
+				#print("v_desired", v_desired, "yaw_desired", yaw_desired)
 				msg.linear.x, msg.linear.y = self._get_applied_motion(v_desired, yaw_desired)
-                # msg.linear.x, msg.angular.z = self._get_applied_motion(v_desired, yaw_desired)
 			else:
 				msg.linear.x = 0.0
 				msg.angular.z = 0.0
-			print("msg.linear.y", msg.linear.y)
-			print("msg.linear.x", msg.linear.x)
+			#print("msg.linear.y", msg.linear.y)
+			#print("msg.linear.x", msg.linear.x)
 			self.publisher.publish(msg)
 			return
 		
