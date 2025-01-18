@@ -666,12 +666,12 @@ class Control(object):
 
         # Yaw rate (angular velocity) and Update the heading (cumulative)
         yaw_rate = (new_velocity / self.args.wheelbase) * np.tan(new_steering)
-        new_steering = yaw_rate * dt
+        new_heading = yaw_rate * dt
 
         
         # Calculates the forward velocity and turning velocity
-        velocity_x = new_velocity * np.sin(new_steering)
-        velocity_y = new_velocity * np.cos(new_steering)
+        velocity_x = new_velocity * np.sin(new_heading)
+        velocity_y = new_velocity * np.cos(new_heading)
 
         # Calculates the forward/backward velocity and yaw rate
         #velocity_x = new_velocity
