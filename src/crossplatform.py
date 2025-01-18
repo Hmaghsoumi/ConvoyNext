@@ -34,8 +34,8 @@ class ROSArgs:
         self.follow_distance = follow_distance
         self.speed_max = speed_max    # m/s
         self.speed_min = speed_min    # m/s
-        self.accel_max = accel_max    # +1.0
-        self.accel_min = accel_min    # -1.0
+        self.accel_max = accel_max    # m/s^2
+        self.accel_min = accel_min    # m/s^2
         self.steer_max = steer_max    #unit: degree
         self.steer_min = steer_min    #unit: degree
         self.velocity_weight = velocity_weight
