@@ -72,6 +72,8 @@ if __name__ == '__main__':
         center_orientation=args.center_orientation,
         heading_con_type=args.heading_con_type, 
         speed_con_type=args.speed_con_type, 
+        I_max=args.I_max,
+        alpha=args.alpha,
         P_Kp=args.P_Kp,
         I_Ki=args.I_Ki,
         PI_Kp=args.PI_Kp,
