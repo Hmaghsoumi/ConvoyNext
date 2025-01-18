@@ -664,14 +664,14 @@ class Control(object):
         new_steering = self.heading_controller(v_ego, yaw_ego, yaw_desired)
         new_steering = np.radians(new_steering)
         
+        # Calculates the forward velocity and turning velocity
+        velocity_x = -new_velocity * np.sin(new_steering)
+        velocity_y = new_velocity * np.cos(new_steering)
+
         # Calculates the forward/backward velocity and yaw rate
         #velocity_x = new_velocity
         #angular_z = (new_velocity / self.args.wheelbase) * np.tan(new_steering)
-        velocity_x = -new_velocity * np.sin(new_steering)
-        velocity_y = new_velocity * np.cos(new_steering)
-        #print("applying throttle {throttle}, speed {speed} and steering {steering} with yaw rate {yaw_rate}".format(throttle=throttle, speed=velocity_x, steering=new_steering, yaw_rate=angular_z))
 
-        #return velocity_x, angular_z
         return velocity_x, velocity_y
 
 
