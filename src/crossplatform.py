@@ -499,18 +499,14 @@ class Control(object):
         # Presents steering angle in degree
         return steer_expect
 
-
-    def normalize_angle(angle):
-        """Normalize angle to the range [-180, 180]."""
-        return (angle + 180) % 360 - 180
-    
+   
     def minimization_objective(self, params):
         """                     Cost function to minimize to implement cooperative driving policy.                     """ 
         """ By default implements platooning. Override this function in your subclass to implement a different policy. """
          
         # Ego vehicle data
         x_ego, y_ego = self.coords_to_local(self.state.latitude, self.state.longitude)
-        yaw_ego = np.radians(normalize_angle(params[1]))
+        yaw_ego = np.radians(params[1])
         v_ego = params[0]
 
         # Cost Calculation
@@ -518,7 +514,7 @@ class Control(object):
         for _, value in self.car_positions.items():
             value = value[-1]
             x_target, y_target = self.coords_to_local(value.latitude, value.longitude)
-            yaw_target = np.radians(normalize_angle(value.heading))
+            yaw_target = np.radians(value.heading)
             v_target = value.speed         
             
             # Calculation goal follow distance
@@ -549,14 +545,14 @@ class Control(object):
 
         # Ego vehicle data
         x_ego, y_ego = self.coords_to_local(self.state.latitude, self.state.longitude)
-        yaw_ego = np.radians(normalize_angle(self.state.heading))
+        yaw_ego = np.radians(self.state.heading)
 
         # Cost Calculation
         total_cost = 0
         for _, value in self.car_positions.items():
             value = value[-1]
             x_target, y_target = self.coords_to_local(value.latitude, value.longitude)
-            yaw_target = np.radians(normalize_angle(value.heading))
+            yaw_target = np.radians(value.heading)
             v_target = value.speed
                         
             # Calculation goal follow distance
@@ -591,7 +587,7 @@ class Control(object):
 
         # Ego vehicle data
         x_ego, y_ego = self.coords_to_local(self.state.latitude, self.state.longitude)
-        yaw_ego = np.radians(normalize_angle(yaw_ego))
+        yaw_ego = np.radians(yaw_ego)
         v_ego = self.state.speed
         
         # Cost Calculation
@@ -599,7 +595,7 @@ class Control(object):
         for _, value in self.car_positions.items():
             value = value[-1]
             x_target, y_target = self.coords_to_local(value.latitude, value.longitude)
-            yaw_target = np.radians(normalize_angle(value.heading))
+            yaw_target = np.radians(value.heading)
             v_target = value.speed          
             
             # Calculation goal follow distance
@@ -630,7 +626,7 @@ class Control(object):
         """                 (Uses the implemented minimization objective, which by default is for platooning)                      """
 
         # Optimization for velocity and yaw together
-        bounds = [(0.0, 4.0), (-180, 180)]
+        bounds = [(0.0, 4.0), (0, 360)]
         speed_initial, yaw_initial = self.car_positions[0][-1].speed, self.car_positions[0][-1].heading
         response = minimize(lambda params: self.minimization_objective(params), [speed_initial, yaw_initial], method='SLSQP', bounds=bounds)
         if not response.success:
