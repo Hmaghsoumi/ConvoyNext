@@ -30,7 +30,7 @@ class ROS2Control(Control, Node):
 		self.accel_subscription = self.create_subscription(Imu, '/mavros/imu/data', self._accel_listener_callback, QoSPresetProfiles.SENSOR_DATA.value, callback_group=MutuallyExclusiveCallbackGroup())
 		self.publisher = self.create_publisher(Twist, '/mavros/setpoint_velocity/cmd_vel_unstamped', 20)
 
-        # arming and disarming services
+                # arming and disarming services
 		print('setting up motion clients')
 		self.set_mode_client = self.create_client(SetMode, '/mavros/set_mode')
 		while not self.set_mode_client.wait_for_service(timeout_sec=1.0):
