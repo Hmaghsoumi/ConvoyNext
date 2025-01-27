@@ -500,7 +500,7 @@ class Control(object):
         return steer_expect
 
    
-    def minimization_objective(self, params):
+    def trajectory_cost_straight(self, params):
         """                     Cost function to minimize to implement cooperative driving policy.                     """ 
         """ By default implements platooning. Override this function in your subclass to implement a different policy. """
          
@@ -540,7 +540,7 @@ class Control(object):
         return total_cost
 
 
-    def minimization_objective(self, params):
+    def trajectory_cost_curve(self, params):
         """    Cost function to minimize for cooperative driving policy supporting curved trajectories.    """
         """    Override this function in a subclass to implement a different policy.    """
     
@@ -725,7 +725,8 @@ class Control(object):
         # Optimization for velocity and yaw together
         bounds = [(0.0, 4.0), (0, 360)]
         speed_initial, yaw_initial = self.car_positions[0][-1].speed, self.car_positions[0][-1].heading
-        response = minimize(lambda params: self.minimization_objective(params), [speed_initial, yaw_initial], method='SLSQP', bounds=bounds)
+        response = minimize(lambda params: self.trajectory_cost_straight(params), [speed_initial, yaw_initial], method='SLSQP', bounds=bounds)
+        #response = minimize(lambda params: self.trajectory_cost_curve(params), [speed_initial, yaw_initial], method='SLSQP', bounds=bounds)
         if not response.success:
             raise ValueError("Optimization failed: " + response.message)
         v_ego_optimal, yaw_ego_optimal = response.x
