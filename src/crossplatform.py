@@ -534,10 +534,107 @@ class Control(object):
             print("v_target:", v_target, "v_ego:", v_ego, "yaw_target:", value.heading, "yaw_ego:", self.state.heading)
 
             # Cost computation 
-            distance_cost = np.sqrt((x_ego_goal - x_ego_future)**2 + (y_ego_goal - y_ego_future)**2)
-            total_cost += distance_cost
+            position_error = np.sqrt((x_ego_goal - x_ego_future)**2 + (y_ego_goal - y_ego_future)**2)
+            total_cost += position_error
 
         return total_cost
+
+
+    def minimization_objective(self, params):
+        """    Cost function to minimize for cooperative driving policy supporting curved trajectories.    """
+        """    Override this function in a subclass to implement a different policy.    """
+    
+        def calculate_goal_on_curve(poly_coeffs, x_start, goal_distance, x_prev, y_prev):
+            """    Moves along the curve starting from x_start until the goal_distance is reached.    """
+        
+            distance_traveled = 0
+            x_current = x_start
+            step_size = 0.1  # Small step for precision
+            reverse_sign = 1  # Tracks the sign for movement reversal
+
+            while distance_traveled < goal_distance:
+                y_current = np.poly1d(poly_coeffs)(x_current)
+
+                # Calculate the slope of the curve (derivative of the polynomial)
+                slope = np.poly1d(poly_coeffs).deriv()(x_current)
+
+                # Normalize the direction vector (tangent to the curve)
+                direction_vector = np.array([1, slope])
+                direction_vector /= np.linalg.norm(direction_vector)
+
+                # Calculate the actual movement direction from the previous position
+                movement_vector = np.array([x_current - x_prev, y_current - y_prev])
+                movement_vector /= np.linalg.norm(movement_vector)
+
+                # Align the tangent direction with the movement direction
+                if np.dot(direction_vector, movement_vector) < 0:
+                    direction_vector = -direction_vector
+
+                # Move backward along the tangent to find the goal position
+                x_next = x_current - reverse_sign * step_size * direction_vector[0]
+                y_next = y_current - reverse_sign * step_size * direction_vector[1]
+
+                # Accumulate distance traveled
+                distance_traveled += np.sqrt((x_next - x_current)**2 + (y_next - y_current)**2)
+
+                # Reverse the sign after the first iteration
+                reverse_sign = -1
+
+                # Update current position
+                x_prev, y_prev = x_current, y_current
+                x_current = x_next
+
+            # Return the final position on the curve
+            x_goal = x_current
+            y_goal = np.poly1d(poly_coeffs)(x_goal)
+            return x_goal, y_goal
+
+        # Ego vehicle data
+        x_ego, y_ego = self.coords_to_local(self.state.latitude, self.state.longitude)
+        yaw_ego = np.radians(params[1])  
+        v_ego = params[0]  
+
+        # Total cost
+        total_cost = 0
+        for car_id, value in self.car_positions.items():
+            if len(value) < 3:
+                logging.warning(f"Not enough points to fit a curve for car {car_id}.")
+                continue
+
+            # Include now position, future position, and last three points for curve fitting
+            x_target, y_target = self.coords_to_local(value[-1].latitude, value[-1].longitude)
+            yaw_target = np.radians(value[-1].heading)
+            v_target = value[-1].speed
+        
+            # Simulation future positions
+            x_target_future = x_target + (v_target * np.sin(yaw_target) * self.args.broadcast_interval)
+            y_target_future = y_target + (v_target * np.cos(yaw_target) * self.args.broadcast_interval)
+            x_ego_future = x_ego + (v_ego * np.sin(yaw_ego) * self.args.broadcast_interval)
+            y_ego_future = y_ego + (v_ego * np.cos(yaw_ego) * self.args.broadcast_interval)
+
+            # Use the last three points, current and future positions
+            points = [self.coords_to_local(p.latitude, p.longitude) for p in value]
+            points.append((x_target_future, y_target_future))
+            x_coords, y_coords = zip(*points)
+
+            # Fit a polynomial curve to the trajectory (quadratic curve fitting)
+            poly_coeffs = np.polyfit(x_coords, y_coords, 2)
+
+            # Goal follow distance
+            position = self.args.car_number - value[-1].event_flags['car']
+            goal_follow_distance = self.args.follow_distance * position
+
+            # Calculate the goal position on the curve
+            x_ego_goal, y_ego_goal = calculate_goal_on_curve(poly_coeffs, x_target_future, goal_follow_distance, x_target, y_target)
+
+            # Compute position error on the curve
+            position_error = np.sqrt((x_ego_goal - x_ego_future)**2 + (y_ego_goal - y_ego_future)**2)
+
+            # Add position error to total cost
+            total_cost += position_error
+
+        return total_cost
+
 
     
     def minimization_objective_velocity(self, v_ego):
