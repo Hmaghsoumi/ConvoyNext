@@ -112,7 +112,7 @@ class ROS2Control(Control, Node):
 				msg.linear.x, msg.linear.y = self._get_applied_motion(v_desired, yaw_desired)
 			else:
 				msg.linear.x = 0.0
-				msg.angular.z = 0.0
+				msg.linear.y = 0.0
 			#print("msg.linear.y", msg.linear.y)
 			#print("msg.linear.x", msg.linear.x)
 			self.publisher.publish(msg)
