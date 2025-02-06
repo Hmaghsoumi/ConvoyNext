@@ -812,7 +812,7 @@ class Control(object):
         if not os.path.exists(save_path):
             os.makedirs(save_path)
         # Creating the file name
-        file_name = "py2_{car}_{time}_{droprate}.pkl".format(car=self.args.car_number, time=formatted_time, droprate=self.args.drop_rate)
+        file_name = "{car}_{time}_{droprate}.pkl".format(car=self.args.car_number, time=formatted_time, droprate=self.args.drop_rate)
         # Creating the full file path
         file_path = os.path.join(save_path, file_name)
 
