@@ -389,15 +389,7 @@ class Control(object):
         # Select heading control law based on controller type 
         if self.args.heading_con_type in ['Stanley_Straight', 'Stanley_Curve']:
         
-            # 1. Calculate heading error
-            yaw_diff = yaw_desired - yaw_ego
-
-            if yaw_diff > 180.0:
-                yaw_diff -= 360.0
-            elif yaw_diff < -180.0:
-                yaw_diff += 360.0
-
-            # 2. Calculate crosstrack error
+            
             points = []
             initial_guess = None
 
@@ -445,7 +437,14 @@ class Control(object):
                 if dx_opt * initial_dx + dy_opt * initial_dy < 0:
                     dx_opt, dy_opt = -dx_opt, -dy_opt
 
-                # Calculate crosstrack error value
+
+                # 1. Calculate heading error
+                path_yaw = np.arctan2(dy_opt, dx_opt)
+                vehicle_yaw = np.radians(yaw_ego)
+                heading_error = np.arctan2(np.sin(path_yaw - vehicle_yaw), np.cos(path_yaw - vehicle_yaw))
+                heading_error_deg = np.degrees(heading_error)
+                
+                # 2. Calculate crosstrack error
                 cte = self.distance_to_St_line(x0_opt, y0_opt, dx_opt, dy_opt, x1_ego, y1_ego)
 
             elif self.args.heading_con_type == 'Stanley_Curve':
@@ -486,9 +485,9 @@ class Control(object):
         
 
             # 3. Control law
-            steer_expect = yaw_diff + yaw_diff_crosstrack
+            steer_expect = heading_error_deg + yaw_diff_crosstrack
             steer_expect = np.clip(steer_expect, self.args.steer_min, self.args.steer_max)
-            print(f"yaw_diff: {yaw_diff}, yaw_diff_crosstrack: {yaw_diff_crosstrack}, steer_expect: {steer_expect}")
+            print(f"Heading Error (degrees): {heading_error_deg}, yaw_diff_crosstrack: {yaw_diff_crosstrack}, steer_expect: {steer_expect}")
 
 
         elif self.args.heading_con_type in ['PurePursuit_Straight', 'PurePursuit_Curve']:
