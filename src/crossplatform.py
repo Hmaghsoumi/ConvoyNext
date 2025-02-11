@@ -375,12 +375,15 @@ class Control(object):
         if np.dot(tangent_vector, vehicle_direction) < 0:
             tangent_vector = -tangent_vector
 
+        # Compute path yaw from tangent vector
+        path_yaw = np.arctan2(tangent_vector[1], tangent_vector[0])
+    
         # Determine the sign using the cross product
         point_vector = np.array([x - x_nearest, y - y_nearest])
         cross_product = np.cross(tangent_vector, point_vector)
         sign = np.sign(cross_product)
     
-        return sign * distance
+        return sign * distance, path_yaw
 
     
     def heading_controller(self, v_ego, yaw_ego, yaw_desired):
