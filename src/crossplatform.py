@@ -388,11 +388,12 @@ class Control(object):
     
     def heading_controller(self, v_ego, yaw_ego, yaw_desired):
         """     Calculates the steering angle using various heading controllers    """
-       
+        
+        vehicle_yaw = np.radians(yaw_ego)
+        
         # Select heading control law based on controller type 
         if self.args.heading_con_type in ['Stanley_Straight', 'Stanley_Curve']:
-        
-            
+                    
             points = []
             initial_guess = None
 
@@ -443,9 +444,6 @@ class Control(object):
 
                 # 1. Calculate heading error
                 path_yaw = np.arctan2(dy_opt, dx_opt)
-                vehicle_yaw = np.radians(yaw_ego)
-                heading_error = np.arctan2(np.sin(path_yaw - vehicle_yaw), np.cos(path_yaw - vehicle_yaw))
-                heading_error_deg = np.degrees(heading_error)
                 
                 # 2. Calculate crosstrack error
                 cte = self.distance_to_St_line(x0_opt, y0_opt, dx_opt, dy_opt, x1_ego, y1_ego)
@@ -480,17 +478,20 @@ class Control(object):
                 poly_coeffs = np.polyfit(x_coords, y_coords, 2)  # Change the degree if needed
 
                 # Calculate crosstrack error value
-                cte = self.distance_to_curve_line(poly_coeffs, x1_ego, y1_ego, dx, dy)  
+                cte, path_yaw = self.distance_to_curve_line(poly_coeffs, x1_ego, y1_ego, dx, dy)  
+
+            heading_error = np.arctan2(np.sin(path_yaw - vehicle_yaw), np.cos(path_yaw - vehicle_yaw))
+            heading_error_deg = np.degrees(heading_error)
                 
             # Calculate the removal angle of crosstrack error
-            yaw_diff_crosstrack = np.arctan((self.args.k * cte) / (self.args.ks + v_ego))
-            yaw_diff_crosstrack = np.rad2deg(yaw_diff_crosstrack)
+            crosstrack_error = np.arctan((self.args.k * cte) / (self.args.ks + v_ego))
+            crosstrack_error_deg = np.degrees(crosstrack_error)
         
 
             # 3. Control law
-            steer_expect = heading_error_deg + yaw_diff_crosstrack
+            steer_expect = heading_error_deg + crosstrack_error_deg
             steer_expect = np.clip(steer_expect, self.args.steer_min, self.args.steer_max)
-            print(f"Heading Error (degrees): {heading_error_deg}, yaw_diff_crosstrack: {yaw_diff_crosstrack}, steer_expect: {steer_expect}")
+            print(f"Heading Error (degrees): {heading_error_deg}, CrossTrack Error (degrees): {crosstrack_error_deg}, steer_expect: {steer_expect}")
 
 
         elif self.args.heading_con_type in ['PurePursuit_Straight', 'PurePursuit_Curve']:
