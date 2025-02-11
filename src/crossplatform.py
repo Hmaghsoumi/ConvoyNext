@@ -350,6 +350,7 @@ class Control(object):
         best_x = x_grid[np.argmin(distances)]
     
         # Find the x_curve that minimizes the distance function
+        result = minimize_scalar(distance_function, bounds=(x - 10, x + 10), method='bounded')
         closest_point = minimize(distance_function, best_x, bounds=[(x - 10, x + 10)])
         if not closest_point.success:
             raise ValueError("Optimization failed to find the closest point.") 
