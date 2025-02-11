@@ -386,7 +386,7 @@ class Control(object):
         return sign * distance, path_yaw
 
     
-    def heading_controller(self, v_ego, yaw_ego, yaw_desired):
+    def heading_controller(self, v_ego, yaw_ego):
         """     Calculates the steering angle using various heading controllers    """
         
         vehicle_yaw = np.radians(yaw_ego)
@@ -755,15 +755,15 @@ class Control(object):
         yaw_ego = self.state.heading
         dt = self.args.broadcast_interval
 
+        # Heading Calculation
+        new_steering = self.heading_controller(v_ego, yaw_ego)
+        new_steering = np.radians(new_steering)
+
         # Speed Calculation
         throttle = self.speed_controller(v_ego, v_desired, dt)
         new_velocity = v_ego + (throttle * dt)
         new_velocity = np.clip(new_velocity, self.args.speed_min, self.args.speed_max)
         
-
-        # Heading Calculation
-        new_steering = self.heading_controller(v_ego, yaw_ego, yaw_desired)
-        new_steering = np.radians(new_steering)
 
         # Yaw rate (angular velocity) and Update the heading (cumulative)
         yaw_rate = (new_velocity / self.args.wheelbase) * np.tan(new_steering)
