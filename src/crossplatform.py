@@ -332,7 +332,7 @@ class Control(object):
 
 
 
-    def distance_to_curve_line(self, poly_coeffs, x, y, dx, dy):
+    def distance_to_curve_line(self, poly_coeffs, x, y, dx, dy, yaw_ego):
         """  Calculates the signed distance between a point (x,y) and a polynominal curve.  """
         """  Positive distance indicates the point is to the "left" of the curve (based on normal vector), and negative distance indicates the point is to the "right." """
         
@@ -361,7 +361,7 @@ class Control(object):
         if not closest_point.success:
             raise ValueError("Optimization failed to find the closest point.") 
         
-        x_nearest = closest_point.x[0]
+        x_nearest = closest_point.x
         y_nearest = poly_func(x_nearest)
 
         # Calculate the Euclidean distance between (x, y) and the nearest point on the curve
@@ -385,13 +385,24 @@ class Control(object):
 
         # Compute path yaw from tangent vector
         path_yaw = np.arctan2(tangent_vector[1], tangent_vector[0])
-    
+        path_yaw_deg = np.degrees(path_yaw)  # Convert from radians to degrees
+        path_yaw_north = (90 - path_yaw_deg) % 360  # Shift to a North-based system
+
         # Determine the sign using the cross product
         point_vector = np.array([x - x_nearest, y - y_nearest])
         cross_product = np.cross(tangent_vector, point_vector)
         sign = np.sign(cross_product)
+
+        # Compute the heading difference and wrap it to [-180, 180)
+        y_diff = (yaw_ego - path_yaw_north + 180) % 360 - 180 
+
+        # Adjust sign based on quadrant logic
+        if sign < 0 and (-180 < y_diff < -90):  # Vehicle is on the right & heading in 3rd quadrant
+            sign = 1  # Force positive sign
+        elif sign > 0 and (90 < y_diff < 180):  # Vehicle is on the left & heading in 2nd quadrant
+            sign = -1  # Force negative sign
     
-        return sign * distance, path_yaw
+        return sign * distance, path_yaw_north
 
     
     def heading_controller(self, v_ego, yaw_ego):
@@ -452,6 +463,8 @@ class Control(object):
 
                 # 1. Calculate heading error
                 path_yaw = np.arctan2(dy_opt, dx_opt)
+                path_yaw_deg = np.degrees(path_yaw)  # Convert from radians to degrees
+                path_yaw_north = (90 - path_yaw_deg) % 360  # Shift to a North-based system
                 
                 # 2. Calculate crosstrack error
                 cte = self.distance_to_St_line(x0_opt, y0_opt, dx_opt, dy_opt, x1_ego, y1_ego)
@@ -486,10 +499,10 @@ class Control(object):
                 poly_coeffs = np.polyfit(x_coords, y_coords, 2)  # Change the degree if needed
 
                 # Calculate crosstrack error value
-                cte, path_yaw = self.distance_to_curve_line(poly_coeffs, x1_ego, y1_ego, dx, dy)  
+                cte, path_yaw_north = self.distance_to_curve_line(poly_coeffs, x1_ego, y1_ego, dx, dy, yaw_ego)  
 
             # Calculate the removal angle of heading error
-            heading_error = np.arctan2(np.sin(path_yaw - vehicle_yaw), np.cos(path_yaw - vehicle_yaw))
+            heading_error = np.arctan2(np.sin(path_yaw_north - vehicle_yaw), np.cos(path_yaw_north - vehicle_yaw))
             heading_error_deg = np.degrees(heading_error)
                 
             # Calculate the removal angle of crosstrack error
