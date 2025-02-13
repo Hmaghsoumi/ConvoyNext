@@ -344,16 +344,23 @@ class Control(object):
             y_curve = poly_func(x_curve)
             return np.sqrt((x - x_curve)**2 + (y - y_curve)**2)
 
-        # Initial sampling to estimate the nearest value
-        x_grid = np.linspace(x - 2, x + 2, 40)
-        distances = [distance_function(x0) for x0 in x_grid]
-        best_x = x_grid[np.argmin(distances)]
+        # Use Brent’s method (best for a single minimum)
+        closest_point = minimize_scalar(distance_function, method="Brent")
+
+        ## **Step 1: Initial Sampling to Find a Rough Nearest x-coordinate**
+        #x_grid = np.linspace(x - 2, x + 2, 40)
+        #distances = [distance_function(x0) for x0 in x_grid]
+        #best_x = x_grid[np.argmin(distances)]
+
+        # **Step 2: Use best_x as a refined starting region for minimize_scalar()**
+        #search_range = (max(x - 10, best_x - 2), min(x + 10, best_x + 2))  # Focus on best_x region
     
         # Find the x_curve that minimizes the distance function
-        result = minimize_scalar(distance_function, bounds=(x - 10, x + 10), method='bounded')
-        closest_point = minimize(distance_function, best_x, bounds=[(x - 10, x + 10)])
+        #closest_point = minimize_scalar(distance_function, bounds=search_range, method='bounded')
+        
         if not closest_point.success:
             raise ValueError("Optimization failed to find the closest point.") 
+        
         x_nearest = closest_point.x[0]
         y_nearest = poly_func(x_nearest)
 
@@ -366,14 +373,14 @@ class Control(object):
         tangent_vector = np.array([1, slope])
         tangent_vector /= np.linalg.norm(tangent_vector)
         
-        # Normalize the vehicle direction and align with tangent vector
-        vehicle_direction = np.array([dx, dy])
-        if np.linalg.norm(vehicle_direction) == 0:
+        # Normalize the vehicles direction and align with tangent vector
+        vehicles_direction = np.array([dx, dy])
+        if np.linalg.norm(vehicles_direction) == 0:
             raise ValueError("Invalid vehicle direction: dx and dy cannot both be zero.")
-        vehicle_direction /= np.linalg.norm(vehicle_direction)
+        vehicles_direction /= np.linalg.norm(vehicles_direction)
 
         # Align curve direction with vehicle direction
-        if np.dot(tangent_vector, vehicle_direction) < 0:
+        if np.dot(tangent_vector, vehicles_direction) < 0:
             tangent_vector = -tangent_vector
 
         # Compute path yaw from tangent vector
@@ -481,13 +488,13 @@ class Control(object):
                 # Calculate crosstrack error value
                 cte, path_yaw = self.distance_to_curve_line(poly_coeffs, x1_ego, y1_ego, dx, dy)  
 
+            # Calculate the removal angle of heading error
             heading_error = np.arctan2(np.sin(path_yaw - vehicle_yaw), np.cos(path_yaw - vehicle_yaw))
             heading_error_deg = np.degrees(heading_error)
                 
             # Calculate the removal angle of crosstrack error
             crosstrack_error = np.arctan((self.args.k * cte) / (self.args.ks + v_ego))
             crosstrack_error_deg = np.degrees(crosstrack_error)
-        
 
             # 3. Control law
             steer_expect = heading_error_deg + crosstrack_error_deg
