@@ -465,9 +465,18 @@ class Control(object):
                 path_yaw = np.arctan2(dy_opt, dx_opt)
                 path_yaw_deg = np.degrees(path_yaw)  # Convert from radians to degrees
                 path_yaw_north = (90 - path_yaw_deg) % 360  # Shift to a North-based system
+
+                # Compute the heading difference and wrap it to [-180, 180)
+                y_diff = (yaw_ego - path_yaw_north + 180) % 360 - 180 
                 
                 # 2. Calculate crosstrack error
                 cte = self.distance_to_St_line(x0_opt, y0_opt, dx_opt, dy_opt, x1_ego, y1_ego)
+
+                # Adjust sign based on quadrant logic
+                if cte < 0 and (-180 < y_diff < -90):  # Vehicle is on the right & heading in 3rd quadrant
+                    cte = -cte  # Force positive sign
+                elif cte > 0 and (90 < y_diff < 180):  # Vehicle is on the left & heading in 2nd quadrant
+                    cte = -cte  # Force negative sign
 
             elif self.args.heading_con_type == 'Stanley_Curve':
 
@@ -502,6 +511,7 @@ class Control(object):
                 cte, path_yaw_north = self.distance_to_curve_line(poly_coeffs, x1_ego, y1_ego, dx, dy, yaw_ego)  
 
             # Calculate the removal angle of heading error
+            path_yaw_north = np.radians(path_yaw_north)
             heading_error = np.arctan2(np.sin(path_yaw_north - vehicle_yaw), np.cos(path_yaw_north - vehicle_yaw))
             heading_error_deg = np.degrees(heading_error)
                 
