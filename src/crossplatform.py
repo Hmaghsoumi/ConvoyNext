@@ -301,7 +301,6 @@ class Control(object):
 
         return accel
 
-
     
     def distance_to_St_line(self, x0, y0, dx, dy, x, y):
         """           Calculates the distance between a point (x,y) and            """
