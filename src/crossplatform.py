@@ -330,7 +330,6 @@ class Control(object):
         return sign * distance
 
 
-
     def distance_to_curve_line(self, poly_coeffs, x, y, dx, dy, yaw_ego):
         """  Calculates the signed distance between a point (x,y) and a polynominal curve.  """
         """  Positive distance indicates the point is to the "left" of the curve (based on normal vector), and negative distance indicates the point is to the "right." """
