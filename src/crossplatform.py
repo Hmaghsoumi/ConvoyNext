@@ -280,7 +280,7 @@ class Control(object):
         else:
             I_error = 0
             D_error = 0
-            self.previous_D_error = None  # Safe fallback for early iterations
+            self.previous_D_error = 0.0  # Safe fallback for early iterations
 
         # Select acceleration control law based on controller type  
         if self.args.speed_con_type == 'P':
@@ -797,6 +797,8 @@ class Control(object):
         # Yaw rate (angular velocity) and Update the heading (cumulative)
         yaw_rate = (new_velocity / self.args.wheelbase) * np.tan(new_steering)
         new_heading = yaw_rate * dt
+        #new_heading = np.radians(yaw_desired - yaw_ego)   #(Method 2)
+        #new_heading = (new_heading1+new_heading2)/2       #(Method 3)
 
         
         # Calculates the forward velocity and turning velocity
