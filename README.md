@@ -4,55 +4,145 @@ Official code repository for the paper:
 
 **ConvoyNext: A Scalable Testbed Platform for Cooperative Autonomous Vehicle Systems**
 
-Hossein Maghsoumi and Yaser Fallah  
-2025 IEEE 102nd Vehicular Technology Conference (VTC2025-Fall)
+**Authors:** Hossein Maghsoumi and Yaser Fallah  
+**Conference:** 2025 IEEE 102nd Vehicular Technology Conference (VTC2025-Fall)  
+**DOI:** 10.1109/VTC2025-Fall65116.2025.11310499
 
 ## Overview
 
-ConvoyNext is a modular and extensible research platform for the
-real-world evaluation of cooperative autonomous vehicle systems.
+ConvoyNext is a research testbed for real-world cooperative autonomous vehicle experiments. The current implementation supports inter-vehicle state exchange, communication-loss emulation, cooperative trajectory analysis, longitudinal and lateral control, ROS 2/MAVROS integration, and experiment logging.
 
-The platform supports:
+The main platform logic is implemented in `src/crossplatform.py`.
 
-- UDP-based inter-vehicle communication
-- J2735-inspired Basic Safety Messages
-- Configurable communication topologies
-- Controlled packet-loss experiments
+## Repository Structure
+
+```text
+ConvoyNext/
+├── README.md
+├── LICENSE
+├── CITATION.cff
+├── requirements.txt
+├── src/
+│   ├── crossplatform.py
+│   ├── control_ros2.py
+│   ├── platooning.py
+│   └── beacon_broadcast.py
+└── tracks/
+    └── garage_c_loop_big.json
+```
+
+## Main Components
+
+### `src/crossplatform.py`
+
+The main implementation contains:
+
+- Runtime and controller configuration through `ROSArgs`
+- Basic Safety Message representation
+- UDP multicast communication
+- Configurable packet-drop emulation
+- Sensor-state handling
 - GPS-to-local coordinate transformation
 - Straight and curved trajectory modeling
-- Stanley-based lateral control
-- P, PI, PD, and PID speed controllers
-- Optimization-based cooperative motion generation
+- Cooperative target-motion optimization
+- Stanley lateral control
+- P, I, PI, PD, and PID speed control
 - Experimental data logging
 
-## Repository Status
+### `src/control_ros2.py`
 
-This repository currently provides the core platform-independent
-control and communication implementation used in ConvoyNext.
+Provides the ROS 2 and MAVROS interface, including:
 
-The supplied Python module is not a standalone ROS node. A
-platform-specific ROS/MAVROS interface is required to connect the
-core implementation to vehicle sensors and actuators.
+- Sensor subscribers
+- Velocity command publishing
+- Vehicle arming and disarming
+- Mission-state handling
+- Periodic communication and control callbacks
 
-## Main File
+### `src/platooning.py`
 
-`src/convoynext/control.py`
+Command-line entry point for running a follower vehicle.
 
-The file includes:
+### `src/beacon_broadcast.py`
 
-- `ROSArgs`: runtime and controller configuration
-- `BasicSafetyMessage`: shared vehicle-state message representation
-- `Control`: communication, trajectory analysis, controller, and
-  data-logging functionality
+Generates a virtual leader trajectory from a track JSON file and broadcasts vehicle-state messages over UDP multicast.
+
+### `tracks/garage_c_loop_big.json`
+
+Defines the straight segments, turns, speeds, and reference center of an example test track.
 
 ## Requirements
 
-- Python 3.9 or later
-- NumPy
-- SciPy
-- ROS and MAVROS for physical vehicle deployment
+The Python dependencies are listed in `requirements.txt`.
 
-Install the Python dependencies with:
+Install them with:
 
 ```bash
-pip install -r requirements.txt
+python3 -m pip install -r requirements.txt
+```
+
+ROS 2, MAVROS, PX4-related message packages, and the vehicle-specific runtime must be installed separately through the appropriate ROS distribution and operating-system package manager.
+
+## Running the Virtual Leader
+
+From the repository root:
+
+```bash
+python3 src/beacon_broadcast.py \
+  --track_name tracks/garage_c_loop_big.json \
+  --broadcast_interval 0.1 \
+  --drop_rate 0.0
+```
+
+The default multicast configuration used by the current code is:
+
+- Multicast group: `224.0.0.1`
+- UDP port: `5004`
+
+Make sure all participating machines are connected to the same network and that multicast traffic is permitted.
+
+## Running a Follower Vehicle
+
+A typical ROS 2 command has the following form:
+
+```bash
+python3 src/platooning.py ros2 \
+  --track_path tracks/garage_c_loop_big.json \
+  --car_number 1 \
+  --heading_con_type Stanley_Curve \
+  --speed_con_type PID \
+  --follow_distance 1.0 \
+  --drop_rate 0.0
+```
+
+The command assumes that ROS 2, MAVROS, the vehicle flight controller, and the required topics and services are already available.
+
+## Important Implementation Note
+
+`crossplatform.py` is the primary implementation file. The remaining Python files provide the ROS 2 execution layer, command-line startup logic, and virtual-leader functionality.
+
+Before running the repository, verify that:
+
+- Imports refer to the current `ConvoyNext` repository rather than the earlier `OpenConvoy` name.
+- The track command-line argument is consistently named `track_path`.
+- `minimize_scalar` and `logging` are imported in `crossplatform.py`.
+- The filename used in imports matches `control_ros2.py`.
+
+## Safety Notice
+
+This repository controls physical autonomous vehicles. Test all changes in simulation or with the vehicle elevated and wheels unloaded before conducting ground experiments. Use an independent emergency stop, maintain a clear test area, and follow all institutional and equipment-specific safety procedures.
+
+## Citation
+
+Please cite the following paper when using this repository:
+
+```bibtex
+@inproceedings{maghsoumi2025convoynext,
+  title     = {ConvoyNext: A Scalable Testbed Platform for Cooperative Autonomous Vehicle Systems},
+  author    = {Maghsoumi, Hossein and Fallah, Yaser},
+  booktitle = {2025 IEEE 102nd Vehicular Technology Conference (VTC2025-Fall)},
+  year      = {2025},
+  publisher = {IEEE},
+  doi       = {10.1109/VTC2025-Fall65116.2025.11310499}
+}
+```
