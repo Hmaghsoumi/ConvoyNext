@@ -1,0 +1,7 @@
+numpy>=1.23
+scipy>=1.9
+pyproj>=3.4
+
+# ROS 2 and MAVROS dependencies are installed separately through ROS/OS packages.
+# Examples include rclpy, geometry_msgs, nav_msgs, sensor_msgs, std_msgs,
+# mavros_msgs, and the vehicle-specific MAVROS/PX4 runtime.
