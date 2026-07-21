@@ -117,16 +117,11 @@ python3 src/platooning.py ros2 \
 
 The command assumes that ROS 2, MAVROS, the vehicle flight controller, and the required topics and services are already available.
 
-## Important Implementation Note
+## Implementation Structure
 
-`crossplatform.py` is the primary implementation file. The remaining Python files provide the ROS 2 execution layer, command-line startup logic, and virtual-leader functionality.
+`src/crossplatform.py` contains the core platform-independent implementation of ConvoyNext, including communication, coordinate transformation, cooperative trajectory analysis, control, and data logging.
 
-Before running the repository, verify that:
-
-- Imports refer to the current `ConvoyNext` repository rather than the earlier `OpenConvoy` name.
-- The track command-line argument is consistently named `track_path`.
-- `minimize_scalar` and `logging` are imported in `crossplatform.py`.
-- The filename used in imports matches `control_ros2.py`.
+The remaining Python files provide the ROS 2/MAVROS interface, command-line execution, and virtual-leader functionality.
 
 ## Safety Notice
 
